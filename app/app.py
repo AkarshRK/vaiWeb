@@ -17,8 +17,6 @@ from tables import Gifs
 # Database
 config = Config(".env")
 conString = "postgresql://postgres:postgres@localhost:5432/vectorai"
-costring = "postgresql://localhost.vectorai"
-# conn = await asyncpg.connect(user='dev_user', password='vai_dev',database='vectorai', host='127.0.0.1')
 DATABASE_URL = config(
     "DATABASE_URL", cast=DatabaseURL, default=conString
 )
@@ -94,8 +92,8 @@ async def server_error(request, exc):
     """
     Return an HTTP 500 page.
     """
-    return JSONResponse({'detail': 'Error 500', 'request': request})
+    return JSONResponse({'detail': 'Erro 500', 'request': request})
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run("app:app", host='0.0.0.0', port=8000, reload=True)

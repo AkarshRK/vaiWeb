@@ -1,7 +1,8 @@
 import React from 'react';
 import logo from './logo.svg';
-import './App.css';
+import './App.scss';
 import axios from 'axios';
+import GifGridFunc from './GifTable/GifGridFunc'
 
 function App() {
   function testApiConnection() {
@@ -13,12 +14,16 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <button onClick={testApiConnection}>Click to test API integration.</button>
-      </header>
-    </div>
+    <div className="pcoded-wrapper">
+      <div className="pcoded-content">
+        <div className="pcoded-inner-content">
+          <div className="App">
+            <GifGridFunc/>
+            <button onClick={testApiConnection}>Click to test API integration.</button>
+          </div>
+        </div>
+      </div>
+    </div >
   );
 }
 
