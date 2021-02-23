@@ -5,6 +5,11 @@ import values from "lodash/values";
 import filter from "lodash/filter";
 import isEmpty from "lodash/isEmpty";
 import isEqual from "lodash/isEqual";
+import forEach from "lodash/forEach";
+import indexOf from "lodash/indexOf";
+import findIndex from "lodash/findIndex";
+import cloneDeep from "lodash/cloneDeep";
+import pick from "lodash/pick";
 
 export {
     map,
@@ -13,5 +18,10 @@ export {
     values,
     filter,
     isEmpty,
-    isEqual
+    isEqual,
+    forEach,
+    indexOf,
+    findIndex,
+    cloneDeep,
+    pick
 };
