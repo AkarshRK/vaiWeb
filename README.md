@@ -36,6 +36,10 @@ Clone the above repo:
 git clone https://github.com/AkarshRK/vaiWeb.git
 cd vaiWeb
 ```
+Copy environment variables...
+```sh
+cp .env .env.dev 
+```
 
 Install the react packages...
 
