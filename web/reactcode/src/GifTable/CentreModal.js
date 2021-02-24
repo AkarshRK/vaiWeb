@@ -15,6 +15,7 @@ function CentredModal(props) {
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
             centered
+            keyboard
         >
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter">
