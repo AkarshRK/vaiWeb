@@ -1,31 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Row, Col, Card, Form, Button, Badge, Container, Image, Modal, Spinner, Overlay } from 'react-bootstrap';
+import { Row, Col, Card, Button, Container, Image, Spinner } from 'react-bootstrap';
 import { ReactSortable } from "react-sortablejs";
 
 import Aux from "../hoc/_Aux";
 import axios from 'axios'
-import { map, size, isEqual, isEmpty, findIndex, forEach, filter, cloneDeep, pick } from '../common-libraries'
+import { map, size, isEqual, isEmpty, findIndex, forEach, pick } from '../common-libraries'
 import EditComp from './GifEditComponent';
 import CentredModal from './CentreModal';
 
+
 function GifGridFunc() {
+
+    {/* 
+            The main webpage which holds all the logic to 
+            - add
+            - edit
+            - sort
+            - delete
+            - view
+            a gif(s)
+    */}
+
+    //******************state values************************
+
+    //modal state values which holds data in the form of {id: <gif_id>, boolValue:<to_show>} 
     const [imageModalShow, setImageModalShow] = useState({});
     const [editModalShow, setEditModalShow] = useState({});
+
+    // values to hold add inputs
     const [gifList, setGifList] = useState([]);
     const [gifUrl, setGifUrl] = useState('');
     const [gifType, setGifType] = useState('');
     const [gifTitle, setGifTitle] = useState('');
-    const [errorFree, setErrorFree] = useState(false);
+    const [errorAddFree, setErrorAddFree] = useState(false);
+
+    // spinner value and last updated state values
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [minutes, setMinutes] = useState(0);
     const [hour, setHour] = useState(0);
 
+    //state values to hold edit input values
     const [editTitle, setEditTitle] = useState('');
     const [editType, setEditType] = useState('');
     const [editUrl, setEditUrl] = useState('');
     const [editId, setEditId] = useState(0);
+    const [errorEditFree, setErrorEditFree] = useState(false);
 
+    const headers = {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json'
+    }
 
+    // function used to generate modal control values
     const generateModalValueId = (gifList) => {
         var modalShowColl = {}
         map(gifList, (gif) => {
@@ -36,13 +62,18 @@ function GifGridFunc() {
 
     }
 
+    {/*  
+        1.Calls the GET api only if either the browser storage is empty or a change action has
+        taken (add, edit, update) 
+        2. It is called if the card order is changed every 5 seconds
+        
+    */}
     const getGifData = () => {
         const localStorageGifList = JSON.parse(localStorage.getItem("gifList") || "[]");
 
         if (isEmpty(localStorageGifList)) {
             const curTime = new Date()
             localStorage.setItem('lastSavedTime', curTime.toString());
-            console.log("empty local storage... or dirty")
             const url = `${process.env.REACT_APP_API_ROOT}/api/giflist`;
             axios.get(url)
                 .then(response => {
@@ -52,20 +83,23 @@ function GifGridFunc() {
                     generateModalValueId(data);
                 });
         } else {
-            console.log('Not an empty local storage...')
             setGifList(localStorageGifList);
             generateModalValueId(localStorageGifList);
         }
     }
 
+
+    // func to reset local storage values
+    const setLocalStorageUpdateTime = () => {
+        localStorage.setItem('gifList', []);
+        localStorage.setItem('lastSavedTime', JSON.stringify(new Date()));
+    }
+
+    // func which is run every 5 sec to check if the order is same or changed
     const checkChanges = () => {
-        console.log("Running check every 5 sec")
         const localStorageGifList = JSON.parse(localStorage.getItem("gifList") || "[]");
         const stateGif = gifList;
-        console.log("Checking isEqual", isEqual(stateGif, localStorageGifList))
-        if (isEqual(stateGif, localStorageGifList)) {
-            console.log("Same!");
-        } else {
+        if (!isEqual(stateGif, localStorageGifList)) {
             var toUpdateGifPosition = [];
 
             forEach(gifList, (stateGif) => {
@@ -73,11 +107,6 @@ function GifGridFunc() {
             });
             //update backend
             const url = `${process.env.REACT_APP_API_ROOT}/api/update-positions`;
-            const headers = {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json'
-            }
-            console.log("to update", toUpdateGifPosition)
 
             axios.post(url, { updateList: toUpdateGifPosition },
                 {
@@ -87,9 +116,7 @@ function GifGridFunc() {
                 .then(response => {
                     const { success } = response.data;
                     if (isEqual(success, "true")) {
-                        console.log("setting localstorage empty!")
-                        localStorage.setItem('gifList', []);
-                        localStorage.setItem('lastSavedTime', JSON.stringify(new Date()));
+                        setLocalStorageUpdateTime();
                         getGifData();
                     }
                 });
@@ -97,6 +124,8 @@ function GifGridFunc() {
 
     }
 
+
+    // custom hook to use it with setInterval
     const useInterval = (callback, delay) => {
         const savedCallback = useRef();
 
@@ -121,26 +150,34 @@ function GifGridFunc() {
         checkChanges();
     }, 5000)
 
+
+    // to calculate the last saved time
     useInterval(() => {
         const lastSavedTime = Date.parse(localStorage.getItem("lastSavedTime") || "new Date()");
         const currentTime = new Date();
         var timeDiff = currentTime - lastSavedTime;
         timeDiff /= 1000;
-        timeDiff = Math.round(timeDiff);
-        const min = Math.round(timeDiff / 60) % 60
-        const hr = Math.round(timeDiff / 3600) % 24
+        timeDiff = Math.floor(timeDiff);
+        const min = Math.floor(timeDiff / 60) % 60
+        const hr = Math.floor(timeDiff / 3600) % 24
         setMinutes(min);
         setHour(hr)
 
     }, 1000)
 
+
+    // equivalent of componentDidMount
     useEffect(() => {
         getGifData();
     }, []);
 
     useEffect(() => {
-        checkError();
+        checkAddError();
     }, [gifType, gifUrl, gifTitle]);
+
+    useEffect(() => {
+        checkEditError();
+    }, [editType, editUrl, editTitle]);
 
     const handleModalShow = (boolVal, itemId) => {
         var newModalShow = { ...imageModalShow };
@@ -155,33 +192,38 @@ function GifGridFunc() {
         setEditModalShow(newEditModalShow);
     }
 
-    const checkError = () => {
+    // to check if on click add the values musn't be empty
+    const checkAddError = () => {
         if (gifUrl && gifType && gifTitle) {
-            setErrorFree(true);
+            setErrorAddFree(true);
         }
     }
+    const checkEditError = () => {
+        if (editUrl && editType && editTitle) {
+            setErrorEditFree(true);
+        }
+    }
+
+
 
     const addGif = () => {
         const url = `${process.env.REACT_APP_API_ROOT}/api/add`;
 
-        console.log(errorFree)
-        if (errorFree) {
+        if (errorAddFree) {
             const gifData = {
                 'position': size(gifList),
                 'title': gifTitle,
                 'type_name': gifType,
                 'gif_url': gifUrl
             }
-            const headers = {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json'
-            }
+
             axios.post(url, gifData,
                 {
                     headers: headers
                 }
             )
                 .then(response => {
+                    setLocalStorageUpdateTime();
                     getGifData();
                 });
         }
@@ -192,16 +234,35 @@ function GifGridFunc() {
         const body = { id: gifId }
         axios.post(url, {})
             .then(() => {
-                localStorage.setItem('gifList', []);
+                setLocalStorageUpdateTime();
                 getGifData();
             });
     }
 
     const updateGif = () => {
 
-        console.log('Edit update')
-        console.log(editTitle, editType, editUrl);
-        handleEditModalShow(false, editId);
+        const url = `${process.env.REACT_APP_API_ROOT}/api/update`;
+
+        if (errorEditFree) {
+            const gifData = {
+                'id': editId,
+                'title': editTitle,
+                'type_name': editType,
+                'gif_url': editUrl
+            }
+
+            axios.post(url, gifData,
+                {
+                    headers: headers
+                }
+            )
+                .then(() => {
+                    setLocalStorageUpdateTime();
+                    getGifData();
+                    handleEditModalShow(false, editId);
+                });
+        }
+
     }
 
     const addProps = {

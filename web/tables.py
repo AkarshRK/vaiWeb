@@ -3,7 +3,7 @@ import sqlalchemy
 
 metadata = sqlalchemy.MetaData()
 
-
+# Gif table schema with id as primary key
 Gifs = sqlalchemy.Table(
     "Gifs",
     metadata,

@@ -1,6 +1,11 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
+
 function CentredModal(props) {
+    {/* 
+            Reusable overlay modal component that takes another component
+            as props and displays it as overlay in the middle of the webpage
+    */}
     const { modalProps, ModalChildComponent, modalChildProps } = props;
     const { modalTitle } = modalProps;
 
@@ -17,11 +22,6 @@ function CentredModal(props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                {/* <Image
-                    src={imageSrc}
-                    fluid
-                    style={{ width: '100%' }}
-                /> */}
                 <ModalChildComponent {...modalChildProps} />
             </Modal.Body>
         </Modal>

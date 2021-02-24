@@ -2,7 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.scss';
 import axios from 'axios';
-import GifGridFunc from './GifTable/GifGridFunc'
+import GifGridFunc from './GifTable/GifGridComponent'
 
 function App() {
 

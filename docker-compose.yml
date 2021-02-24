@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  web:
+    container_name: web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    command: python app.py
+    volumes:
+      - ./web/:/usr/src/web/
+    ports:
+      - 8000:8000
+      - 3000:3000
+      - 35729:35729
+    env_file:
+      - ./.env.dev
+    stdin_open: true
+    depends_on:
+      - db
+  
+  db:
+    container_name: db
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vectorai
+    
+volumes:
+  postgres_data:
